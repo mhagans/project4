@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
         filename = argv[1];
     }
 
-    cout<<"*********** Syntax Analyzer*************"<<endl;
+    cout<<"***************** Intermediate Code Generation*****************"<<endl;
+    cout<<"---------------------------------------------------------------"<< endl;
 
     int token = SPACE;
 

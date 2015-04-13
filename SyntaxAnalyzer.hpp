@@ -4,8 +4,10 @@
 #include <iostream>
 #include <string>
 #include "LexicalAnalyzer.hpp"
+#include "CodeGenerator.h"
 #include "cstdlib"
 #include <vector>
+
 
 
 class SyntaxAnalyzer {
@@ -21,6 +23,8 @@ class SyntaxAnalyzer {
     int tempClass;
     int currentClass;
     string exitString;
+
+
 
 
 

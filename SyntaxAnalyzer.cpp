@@ -1,20 +1,29 @@
 #include "SyntaxAnalyzer.hpp"
+#include "CodeGenerator.h"
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <queue>
 
 
-//using namespace std;
+
+using namespace std;
+
+priority_queue<string> codeQue;
+string tempID;
+string tempType;
+CodeGenerator CG;
 
 SyntaxAnalyzer::SyntaxAnalyzer(vector<string> input) {
     exitString  = "Incorrect Syntax Exiting Program Current Token: " + currentToken;
     tokenArray = input;
-    index = 0;
     exitString = "Incorrect Syntax Exiting Program CURRENT TOKEN: " + currentToken;
 
-    for (int i = 0; i < tokenArray.size(); ++i) {
+    CG = CodeGenerator();
+
+   /* for (int i = 0; i < tokenArray.size(); ++i) {
         cout << tokenArray[i] << endl;
-    }
+    }*/
 }
 
 SyntaxAnalyzer::~SyntaxAnalyzer() {
@@ -30,7 +39,7 @@ void SyntaxAnalyzer::syntax() {
     program();
 
     if(currentToken =="$"){
-        cout << "Syntax is correct" <<endl;
+        cout << endl << "Program Finish" <<endl;
     }else {
         cout << "Failed to compile at Token: " << currentToken << endl;
     }
@@ -65,9 +74,11 @@ void SyntaxAnalyzer::declaration(){
     if (currentClass != EMPTY) {
         //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
         if(currentClass == ID) {
-           // cout<< "inside declaratoin ID check"<<endl;
+            codeQue.push(currentToken);
+
+            // cout<< "inside declaratoin ID check"<<endl;
             Splitter();
-           // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
+            // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             declarationPrime();
         }else {
             //cout<<"inside declartion fail ID check"<<endl;
@@ -102,9 +113,39 @@ void SyntaxAnalyzer::declarationPrime() {
         currentToken = tempToken;
         if (currentToken == "(") {
             Splitter();
+            tempID= codeQue.top();
+            codeQue.pop();
+            tempType = codeQue.top();
+            codeQue.pop();
+
             params();
             if (currentToken == ")") {
                 Splitter();
+
+                // Get size of queue pop params flag off Print Function Line
+                int paramNumber = codeQue.size() - 1;
+                CG.FunctionLine(tempType,tempID, paramNumber/2);
+
+                if(!codeQue.empty()) {
+                    if (codeQue.top().compare("void") == 0) {
+                        codeQue.pop();
+                    }else {
+                        CG.printParam();
+                    }
+
+                }
+                // Print Allocation of params
+                while(!codeQue.empty()) {
+                    tempID = codeQue.top();
+                    codeQue.pop();
+                    tempType = codeQue.top();
+                    codeQue.pop();
+
+                    CG.VarAllocation(tempID);
+
+                }
+
+
                 compoundStmt();
             }
         }else {
@@ -156,8 +197,9 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
 }
 
 void SyntaxAnalyzer::typeSpecific(){
-    /*cout << "inside typeSpecific call"<<endl;
 
+    codeQue.push(currentToken);
+    /*cout << "inside typeSpecific call"<<endl;
     cout <<"tokens: " << currentToken << " " << currentClass<< endl;*/
     if(currentToken == "int"){
        // cout<< "inside typeSpecific  int if statement"<<endl;
@@ -187,11 +229,14 @@ void SyntaxAnalyzer::typeSpecific(){
 }
 
 void SyntaxAnalyzer::params() {
+    //codeQue.push("params");
     /*cout <<"inside params call"<<endl;
     cout <<"tokens: " << currentToken << " " << currentClass<< endl;*/
     if (currentToken == "int") {
+        codeQue.push(currentToken);
         Splitter();
         if (currentClass == ID) {
+            codeQue.push(currentToken);
             Splitter();
             //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             paramPrime();
@@ -208,14 +253,18 @@ void SyntaxAnalyzer::params() {
         }
     }else {
         if (currentToken=="void") {
+            //codeQue.push(currentToken);
             Splitter();
             //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             paramsPrime();
-           // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
+            // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
 
         }else {
             if(currentToken == "float") {
+                codeQue.push(currentToken);
+                Splitter();
                 if (currentClass == ID) {
+                    codeQue.push(currentToken);
                     Splitter();
                     //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
                     paramPrime();
@@ -286,6 +335,7 @@ void SyntaxAnalyzer::param(){
     typeSpecific();
     if (currentClass != EMPTY) {
         if (currentClass == ID) {
+            codeQue.push(currentToken);
             //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             Splitter();
            // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
