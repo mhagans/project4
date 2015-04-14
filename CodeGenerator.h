@@ -10,13 +10,16 @@
 #include "LexicalAnalyzer.hpp"
 #include "cstdlib"
 #include <vector>
+#include <queue>
 
 class CodeGenerator {
 public:
     CodeGenerator();
     void FunctionLine(string type, string id, int params);
     void VarAllocation(string id);
+    void VarAllocation(string id, string num);
     void printParam();
+    void Evaluate(queue evalQue);
 
 private:
     int lineIndex;

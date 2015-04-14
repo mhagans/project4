@@ -3,7 +3,7 @@ void main(void)
   int x;
   int y;
   int z;
-  int m;
+  int m[4];
    while(x+3 > 5)
    {
      x = y + m / z;

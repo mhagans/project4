@@ -9,7 +9,7 @@
 
 using namespace std;
 
-priority_queue<string> codeQue;
+queue<string> codeQue;
 string tempID;
 string tempType;
 CodeGenerator CG;
@@ -113,9 +113,9 @@ void SyntaxAnalyzer::declarationPrime() {
         currentToken = tempToken;
         if (currentToken == "(") {
             Splitter();
-            tempID= codeQue.top();
+            tempType= codeQue.front();
             codeQue.pop();
-            tempType = codeQue.top();
+            tempID = codeQue.front();
             codeQue.pop();
 
             params();
@@ -127,7 +127,7 @@ void SyntaxAnalyzer::declarationPrime() {
                 CG.FunctionLine(tempType,tempID, paramNumber/2);
 
                 if(!codeQue.empty()) {
-                    if (codeQue.top().compare("void") == 0) {
+                    if (codeQue.front().compare("void") == 0) {
                         codeQue.pop();
                     }else {
                         CG.printParam();
@@ -136,9 +136,9 @@ void SyntaxAnalyzer::declarationPrime() {
                 }
                 // Print Allocation of params
                 while(!codeQue.empty()) {
-                    tempID = codeQue.top();
+                    tempType = codeQue.front();
                     codeQue.pop();
-                    tempType = codeQue.top();
+                    tempID = codeQue.front();
                     codeQue.pop();
 
                     CG.VarAllocation(tempID);
@@ -160,6 +160,16 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
     /*cout<< "inside declarationPrimeFactor"<<endl;
     cout <<"tokens: " << currentToken << " " << currentClass<< endl;*/
     if (currentToken == ";") {
+
+        while(!codeQue.empty()) {
+            tempType = codeQue.front();
+            codeQue.pop();
+            tempID = codeQue.front();
+            codeQue.pop();
+
+            CG.VarAllocation(tempID);
+
+        }
         Splitter();
     }else{
         //cout <<"inside declarationPrimeFactor else statement"<<endl;
@@ -168,6 +178,16 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
             //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             if (currentClass == INT) {
                 //cout << "inside declarationPrimeFactor NUM check"<<endl;
+                while(!codeQue.empty()) {
+                    tempType = codeQue.front();
+                    codeQue.pop();
+                    tempID = codeQue.front();
+                    codeQue.pop();
+
+                    CG.VarAllocation(tempID, currentToken);
+
+                }
+
                 Splitter();
                 if (currentToken == "]") {
                     //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
@@ -198,20 +218,23 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
 
 void SyntaxAnalyzer::typeSpecific(){
 
-    codeQue.push(currentToken);
+
     /*cout << "inside typeSpecific call"<<endl;
     cout <<"tokens: " << currentToken << " " << currentClass<< endl;*/
     if(currentToken == "int"){
+        codeQue.push(currentToken);
        // cout<< "inside typeSpecific  int if statement"<<endl;
         Splitter();
         //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
     }else {
         if(currentToken == "float") {
+            codeQue.push(currentToken);
            // cout<< "inside typeSpecific float if statement"<<endl;
             Splitter();
            // cout <<"tokens: " << currentToken << " " <<currentClass<< endl;
         } else {
             if(currentToken == "void") {
+                codeQue.push(currentToken);
                // cout<< "inside typeSpecific void if statement"<<endl;
                 Splitter();
                // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
@@ -400,6 +423,7 @@ void SyntaxAnalyzer::localDeclarationsPrime(){
     typeSpecific();
     if (currentClass != EMPTY) {
         if (currentClass == ID) {
+            codeQue.push(currentToken);
             Splitter();
             //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             declarationPrimeFactor();
@@ -547,6 +571,7 @@ void SyntaxAnalyzer::iterationStmt(){
     /*cout<<"inside iteratoinStmt call"<<endl;
     TokenStmt();*/
     if (currentToken == "while") {
+        codeQue.push(currentToken);
         Splitter();
        // TokenStmt();
         if (currentToken == "(") {
@@ -555,6 +580,7 @@ void SyntaxAnalyzer::iterationStmt(){
             expression();
             if (currentClass != EMPTY) {
                 if (currentToken == ")") {
+
                     Splitter();
                    // TokenStmt();
                     statement();
@@ -621,6 +647,7 @@ void SyntaxAnalyzer::expression() {
     if (currentClass == ID) {
         /*cout<<"INSIDE EXPRESSION id CHECK"<<endl;
         TokenStmt();*/
+        codeQue.push(currentToken);
         Splitter();
         //TokenStmt();
         expressionFactor();
@@ -685,6 +712,7 @@ void SyntaxAnalyzer::expressionFactor(){
     expressionPrime();
     EmptyCheck();
     if (currentToken == "=") {
+        codeQue.push(currentToken);
         Splitter();
        // TokenStmt();
         expression();
@@ -759,31 +787,37 @@ void SyntaxAnalyzer::relop() {
     /*cout<<"inside relop call"<<endl;
     TokenStmt();*/
     if (currentToken == "<=") {
+        codeQue.push(currentToken);
         Splitter();
         //TokenStmt();
 
     }else {
         if (currentToken == "<") {
+            codeQue.push(currentToken);
             Splitter();
             //TokenStmt();
 
         }else {
             if (currentToken == ">") {
+                codeQue.push(currentToken);
                 Splitter();
                 //TokenStmt();
 
             }else {
                 if (currentToken == ">=") {
+                    codeQue.push(currentToken);
                     Splitter();
                     //TokenStmt();
 
                 }else {
                     if (currentToken == "==") {
+                        codeQue.push(currentToken);
                         Splitter();
                         //TokenStmt();
 
                     }else {
                         if (currentToken == "!=") {
+                            codeQue.push(currentToken);
                             Splitter();
                             //TokenStmt();
 
@@ -838,10 +872,12 @@ void SyntaxAnalyzer::addop(){
    /* cout<<"inside addop call"<<endl;
     TokenStmt();*/
     if (currentToken == "+") {
+        codeQue.push(currentToken);
         Splitter();
         //TokenStmt();
     }else {
         if (currentToken == "-") {
+            codeQue.push(currentToken);
             Splitter();
             //TokenStmt();
         }else {
@@ -892,10 +928,12 @@ void SyntaxAnalyzer::mulop(){
     /*cout<<"inside mulop call"<<endl;
     TokenStmt();*/
     if (currentToken == "*") {
+        codeQue.push(currentToken);
         Splitter();
        // TokenStmt();
     }else {
         if (currentToken == "/") {
+            codeQue.push(currentToken);
             Splitter();
             //TokenStmt();
         } else {
@@ -927,14 +965,19 @@ void SyntaxAnalyzer::factor(){
         }
     }else {
         if (currentClass == INT) {
+            string tempI = currentToken + "$";
+            codeQue.push(tempI);
             Splitter();
             //TokenStmt();
         }else {
             if (currentClass == FLOAT) {
+                string tempI = currentToken + "$";
+                codeQue.push(tempI);
                 Splitter();
                 //TokenStmt();
             }else {
                 if (currentClass == ID) {
+                    codeQue.push(currentToken);
                     Splitter();
                    // TokenStmt();
                     factorPrime();
