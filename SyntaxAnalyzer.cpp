@@ -12,6 +12,7 @@ using namespace std;
 queue<string> codeQue;
 string tempID;
 string tempType;
+int argCounter = 0;
 CodeGenerator CG;
 
 SyntaxAnalyzer::SyntaxAnalyzer(vector<string> input) {
@@ -49,7 +50,7 @@ void SyntaxAnalyzer::syntax() {
 void SyntaxAnalyzer::program(){
     //cout << "inside program call"<< endl;
     declarationList();
-
+    CG.PrintStmt();
 }
 
 void SyntaxAnalyzer::declarationList(){
@@ -123,7 +124,8 @@ void SyntaxAnalyzer::declarationPrime() {
                 Splitter();
 
                 // Get size of queue pop params flag off Print Function Line
-                int paramNumber = codeQue.size() - 1;
+
+                int paramNumber = codeQue.size();
                 CG.FunctionLine(tempType,tempID, paramNumber/2);
 
                 if(!codeQue.empty()) {
@@ -147,6 +149,7 @@ void SyntaxAnalyzer::declarationPrime() {
 
 
                 compoundStmt();
+                CG.FunctionEnd(CG.currentFunctionID);
             }
         }else {
             FailExit();
@@ -401,6 +404,7 @@ void SyntaxAnalyzer::compoundStmt(){
         EmptyCheck();
         // Need to check if empty is ok for statementLIst
         if (currentToken == "}") {
+
             Splitter();
            // TokenStmt();
         }else {
@@ -489,9 +493,15 @@ void SyntaxAnalyzer::expressionStmt(){
     expression();
     if (currentClass != EMPTY) {
         if (currentToken == ";") {
-           // TokenStmt();
+            if (!codeQue.empty()) {
+                CG.Evaluate(codeQue);
+            }
+            while(!codeQue.empty()) {
+                codeQue.pop();
+            }
+            // TokenStmt();
             Splitter();
-           // TokenStmt();
+            // TokenStmt();
         }
     }else {
         EmptyCheck();
@@ -571,19 +581,26 @@ void SyntaxAnalyzer::iterationStmt(){
     /*cout<<"inside iteratoinStmt call"<<endl;
     TokenStmt();*/
     if (currentToken == "while") {
-        codeQue.push(currentToken);
+
         Splitter();
        // TokenStmt();
         if (currentToken == "(") {
+            CG.currentFunction = CG.lineIndex;
             Splitter();
            // TokenStmt();
             expression();
             if (currentClass != EMPTY) {
                 if (currentToken == ")") {
 
+                    CG.Evaluate(codeQue);
+                    while(!codeQue.empty()) {
+                        codeQue.pop();
+                    }
                     Splitter();
                    // TokenStmt();
                     statement();
+                    // Add return stmt
+                    CG.WhileReturn();
                     EmptyCheck();
                 } else {
                     FailExit();
@@ -630,7 +647,12 @@ void SyntaxAnalyzer::returnStmtPrime(){
         //cout<<"CHECK TO SEE IF RETURNSTMTPRIME CAN MOVE"<<endl;
         //TokenStmt();
         if (currentToken == ";") {
+            CG.ReturnEval(codeQue);
+            while (!codeQue.empty()) {
+                codeQue.pop();
+            }
             Splitter();
+            CG.PrintStmt();
             //TokenStmt();
         }else {
             FailExit();
@@ -656,13 +678,15 @@ void SyntaxAnalyzer::expression() {
 
     }else {
         if (currentToken == "(") {
-           // TokenStmt();
+            codeQue.push(currentToken);
+            // TokenStmt();
             Splitter();
             expression();
             if (currentClass == EMPTY) {
                 FailExit();
-            }else {
+            } else {
                 if (currentToken == ")") {
+                    codeQue.push(currentToken);
                     Splitter();
                     //TokenStmt();
                     termPrime();
@@ -676,6 +700,7 @@ void SyntaxAnalyzer::expression() {
             }
         }else {
             if (currentClass == INT) {
+                codeQue.push(currentToken);
                 Splitter();
                 //TokenStmt();
                 termPrime();
@@ -687,6 +712,7 @@ void SyntaxAnalyzer::expression() {
 
             }else {
                 if (currentClass == FLOAT) {
+                    codeQue.push(currentToken);
                     Splitter();
                     //TokenStmt();
                     termPrime();
@@ -996,11 +1022,18 @@ void SyntaxAnalyzer::factorPrime(){
     /*cout<<"inside factorPrime call"<<endl;
     TokenStmt();*/
     if (currentToken == "(") {
+
         Splitter();
       //  TokenStmt();
         args();
 
         if (currentToken == ")") {
+            CG.FactorPrint(codeQue, argCounter);
+            argCounter = 0;
+            CG.PrintStmt();
+            while (!codeQue.empty()) {
+                codeQue.pop();
+            }
             Splitter();
           //  TokenStmt();
         }
@@ -1018,10 +1051,24 @@ void SyntaxAnalyzer::args(){
     TokenStmt();*/
     expression();
     if (currentClass != EMPTY) {
+        argCounter++;
         argsPrime();
+        CG.ArgPrint(codeQue, argCounter);
         EmptyCheck();
     }
-    //cout<<"leaving args call"<<endl;
+    CG.PrintStmt();
+    int redo = codeQue.size() - argCounter;
+    queue<string> tempQue;
+    for (int i = 0; i < redo ; ++i) {
+        tempQue.push(codeQue.front());
+        codeQue.pop();
+    }
+    while (!codeQue.empty()) {
+        codeQue.pop();
+    }
+    swap(tempQue, codeQue);
+
+
 }
 
 void SyntaxAnalyzer::argsPrime(){
@@ -1034,6 +1081,7 @@ void SyntaxAnalyzer::argsPrime(){
         if (currentClass == EMPTY) {
             FailExit();
         }
+        argCounter++;
         argsPrime();
         EmptyCheck();
     }else {

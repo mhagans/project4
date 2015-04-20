@@ -1,12 +1,10 @@
+int sub(int x)
+{
+   return(x+x);
+}
 void main(void)
 {
   int x;
   int y;
-  int z;
-  int m[4];
-   while(x+3 > 5)
-   {
-     x = y + m / z;
-     m = x - y + z * m / z;
-   }
+  y = sub(x);
 }
