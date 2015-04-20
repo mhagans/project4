@@ -308,7 +308,7 @@ void CodeGenerator::ArithimiticFunction(string operandOne, string operandTwo, in
 }
 
 void CodeGenerator::PrintStmt() {
-    for (auto it= printQue.begin(); it != printQue.end(); ++it) {
+    for (deque<string>::iterator it= printQue.begin(); it != printQue.end(); ++it) {
         cout << *it;
     }
     while(!printQue.empty()) {
@@ -327,7 +327,7 @@ void CodeGenerator::WhileReturn() {
     printQue.push_back(buffer);
     lineIndex++;
 
-    for (auto it= printQue.begin(); it != printQue.end(); ++it) {
+    for (deque<string>::iterator it= printQue.begin(); it != printQue.end(); ++it) {
         ostringstream testNumber;
         string replacement = *it;
         if(replacement[55] == '$') {
@@ -335,7 +335,7 @@ void CodeGenerator::WhileReturn() {
 
             replacement.replace(54,7, " " + testNumber.str() + "\n");
             printQue.erase(it);
-            printQue.emplace(it+1, replacement);
+            printQue.insert(it+1, replacement);
             break;
         }
     }
