@@ -15,7 +15,7 @@
 
 using  namespace std;
 
-enum{PLUS, SUB, MULT, DIV, GT, LT, GTEQ, LTEQ, EQUAL, ISEQUAL, NTEQ};
+enum{PLUS, SUB, MULT, DIV, GT, LT, GTEQ, LTEQ, EQUAL, ISEQUAL, NTEQ, ARRAY};
 
 class CodeGenerator {
 public:

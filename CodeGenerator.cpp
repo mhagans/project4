@@ -72,6 +72,9 @@ void CodeGenerator::Evaluate(queue<string> evalQue) {
     int operatorID;
     string compareOperator;
     char currentEvalTop;
+    string arrayID = "";
+    string arrayPOS = "";
+    queue<string> arrayStack;
 
     do {
         if (evalQue.front()[1] == '$') {
@@ -180,6 +183,29 @@ void CodeGenerator::Evaluate(queue<string> evalQue) {
 
                     }
                 }
+                break;
+            case '[':
+
+                arrayID = operandQue.top();
+                operandQue.pop();
+                operatorID = ARRAY;
+
+                evalQue.pop();
+                while (evalQue.front()[0] != ']') {
+                    arrayStack.push(evalQue.front());
+                    evalQue.pop();
+                }
+                evalQue.pop();
+                if(arrayStack.size() > 1) {
+                    Evaluate(arrayStack);
+                } else {
+                    arrayPOS = arrayStack.front();
+
+                    ArithimiticFunction(arrayID,  arrayPOS, operatorID);
+
+                }
+
+
                 break;
 
             default:
@@ -348,6 +374,27 @@ void CodeGenerator::ArithimiticFunction(string operandOne, string operandTwo, in
             //printf("%s", buffer);
             printQue.push_back(buffer);
             lineIndex++;
+            break;
+        case ARRAY:
+            string temp2 = tempID;
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "mult", "4", operandTwo.c_str(), tempID.c_str());
+            printQue.push_back(buffer);
+            //operandQue.push(tempID);
+            lineIndex++;
+            tempVarIndex++;
+
+            ostringstream convert;
+            convert << tempVarIndex;
+            tempID = "_t" + convert.str();
+
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "disp", operandOne.c_str(), temp2.c_str(), tempID.c_str());
+            printQue.push_back(buffer);
+            operandQue.push(tempID);
+            lineIndex++;
+            tempVarIndex++;
+
+
+            break;
     }
 
 }

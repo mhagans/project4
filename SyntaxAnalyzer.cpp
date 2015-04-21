@@ -787,6 +787,7 @@ void SyntaxAnalyzer::expressionPrime(){
     /*cout<<"inside expressionPrime call"<<endl;
     TokenStmt();*/
     if (currentToken == "[") {
+        codeQue.push(currentToken);
         Splitter();
        // TokenStmt();
         expression();
@@ -794,6 +795,7 @@ void SyntaxAnalyzer::expressionPrime(){
             FailExit();
         }else {
             if (currentToken == "]") {
+                codeQue.push(currentToken);
                 Splitter();
                 //TokenStmt();
             } else {

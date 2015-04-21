@@ -9,5 +9,6 @@ void main(void)
 {
   int x;
   int y;
+  x= a[3];
   y = sub(x);
 }
