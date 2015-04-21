@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
         filename = argv[1];
     }
 
-    cout<<"***************** Intermediate Code Generation*****************"<<endl;
+    //filename = "test";
+    cout<<"***************** Intermediate Code Generation*****************"<< endl;
     cout<<"---------------------------------------------------------------"<< endl;
 
     int token = SPACE;
@@ -57,6 +58,8 @@ int main(int argc, char **argv) {
                 stringstream convert;
                 convert << token;
 
+
+
                 LA.array.push_back(LA.lexenum + " " + convert.str());
             }
 
@@ -81,12 +84,11 @@ int main(int argc, char **argv) {
                     convert << token;
 
 
+
                     LA.array.push_back(LA.lexenum + " " + convert.str());
                 }
 
             }
-
-
 
         }while(!FILE.eof());
         //FILE.close();

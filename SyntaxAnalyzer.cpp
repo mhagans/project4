@@ -18,12 +18,16 @@ CodeGenerator CG;
 SyntaxAnalyzer::SyntaxAnalyzer(vector<string> input) {
     exitString  = "Incorrect Syntax Exiting Program Current Token: " + currentToken;
     tokenArray = input;
+    index = 0;
     exitString = "Incorrect Syntax Exiting Program CURRENT TOKEN: " + currentToken;
 
     CG = CodeGenerator();
+    CG.inIfStmt = false;
+    CG.inElseStmt = false;
 
-   /* for (int i = 0; i < tokenArray.size(); ++i) {
+    /*for (int i = 0; i < tokenArray.size(); ++i) {
         cout << tokenArray[i] << endl;
+        tokenArray[i].length();
     }*/
 }
 
@@ -36,13 +40,14 @@ void SyntaxAnalyzer::setNewInput(string in) {
 }
 
 void SyntaxAnalyzer::syntax() {
+
     Splitter();
     program();
-
-    if(currentToken =="$"){
+    if(currentToken[0] == '$'){
         cout << endl << "Program Finish" <<endl;
     }else {
-        cout << "Failed to compile at Token: " << currentToken << endl;
+        //cout << "Failed to compile at Token: " << currentToken << endl;
+        CG.PrintStmt();
     }
 
 }
@@ -54,7 +59,7 @@ void SyntaxAnalyzer::program(){
 }
 
 void SyntaxAnalyzer::declarationList(){
-   // cout << "inside declarationList call"<< endl;
+   //cout << "inside declarationList call"<< endl;
     declaration();
     if (currentClass == EMPTY) {
         FailExit();
@@ -65,11 +70,11 @@ void SyntaxAnalyzer::declarationList(){
         ;
     }
     //cout <<"LEAVING DECLARATIONLIST CALL"<<endl;
-    //TokenStmt();
+   //TokenStmt();
 }
 
 void SyntaxAnalyzer::declaration(){
-   // cout<<"inside declaration call"<<endl;
+    //cout<<"inside declaration call"<<endl;
    // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
     typeSpecific();
     if (currentClass != EMPTY) {
@@ -91,7 +96,8 @@ void SyntaxAnalyzer::declaration(){
 }
 
 void SyntaxAnalyzer::declarationListPrime(){
-   // cout<<"inside declarationListPrime call"<<endl;
+    //cout<<"inside declarationListPrime call"<<endl;
+
     tempToken = currentToken;
     tempClass = currentClass;
 
@@ -178,7 +184,7 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
         //cout <<"inside declarationPrimeFactor else statement"<<endl;
         if(currentToken == "[") {
             Splitter();
-            //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
+           //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
             if (currentClass == INT) {
                 //cout << "inside declarationPrimeFactor NUM check"<<endl;
                 while(!codeQue.empty()) {
@@ -193,12 +199,12 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
 
                 Splitter();
                 if (currentToken == "]") {
-                    //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
+                   // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
                     Splitter();
                     if (currentToken == ";") {
-                       // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
+                        //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
                         Splitter();
-                       // cout <<"tokens: " << currentToken << " " << currentClass<< endl;
+                        //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
                     }else {
                         FailExit();
                     }
@@ -215,15 +221,15 @@ void SyntaxAnalyzer::declarationPrimeFactor() {
         }
     }
     //cout<<"LEAVING DECLARATOINPRIMEFACTOR CALL"<<endl;
-   // TokenStmt();
+    //TokenStmt();
 
 }
 
 void SyntaxAnalyzer::typeSpecific(){
 
 
-    /*cout << "inside typeSpecific call"<<endl;
-    cout <<"tokens: " << currentToken << " " << currentClass<< endl;*/
+    //cout << "inside typeSpecific call"<<endl;
+    //cout <<"tokens: " << currentToken << " " << currentClass<< endl;
     if(currentToken == "int"){
         codeQue.push(currentToken);
        // cout<< "inside typeSpecific  int if statement"<<endl;
@@ -404,6 +410,11 @@ void SyntaxAnalyzer::compoundStmt(){
         EmptyCheck();
         // Need to check if empty is ok for statementLIst
         if (currentToken == "}") {
+            if(CG.inIfStmt) {
+                CG.IfFunction();
+                CG.inIfStmt = false;
+
+            }
 
             Splitter();
            // TokenStmt();
@@ -521,9 +532,11 @@ void SyntaxAnalyzer::selectionStmt(){
     //cout<<"inside selectionStmt call"<<endl;
    // TokenStmt();
     if (currentToken == "if") {
+        CG.inIfStmt = true;
         Splitter();
        // TokenStmt();
         if (currentToken == "(") {
+            //CG.currentFunction = CG.lineIndex;
             Splitter();
           //  TokenStmt();
             expression();
@@ -533,6 +546,11 @@ void SyntaxAnalyzer::selectionStmt(){
                 //cout<<"CHECKING FOR  ) "<<endl;
                 if (currentToken == ")") {
                    // cout<<"CHECKING FOR )"<<endl;
+                    CG.Evaluate(codeQue);
+                    while(!codeQue.empty()) {
+                        codeQue.pop();
+                    }
+
                     Splitter();
                    // TokenStmt();
                     statement();
@@ -564,9 +582,11 @@ void SyntaxAnalyzer::selectionStmtPrime(){
     /*cout << "inside selectionStmtPrime call"<<endl;
     TokenStmt();*/
     if (currentToken == "else") {
+        CG.inElseStmt = true;
         Splitter();
        // TokenStmt();
         statement();
+        CG.ElseFunction();
         if (currentClass == EMPTY) {
             FailExit();
         }
@@ -652,7 +672,10 @@ void SyntaxAnalyzer::returnStmtPrime(){
                 codeQue.pop();
             }
             Splitter();
-            CG.PrintStmt();
+            /*if(!CG.inIfStmt){
+                CG.PrintStmt();
+            }*/
+
             //TokenStmt();
         }else {
             FailExit();
@@ -1030,7 +1053,7 @@ void SyntaxAnalyzer::factorPrime(){
         if (currentToken == ")") {
             CG.FactorPrint(codeQue, argCounter);
             argCounter = 0;
-            CG.PrintStmt();
+            //CG.PrintStmt();
             while (!codeQue.empty()) {
                 codeQue.pop();
             }
@@ -1056,7 +1079,7 @@ void SyntaxAnalyzer::args(){
         CG.ArgPrint(codeQue, argCounter);
         EmptyCheck();
     }
-    CG.PrintStmt();
+    //CG.PrintStmt();
     int redo = codeQue.size() - argCounter;
     queue<string> tempQue;
     for (int i = 0; i < redo ; ++i) {
@@ -1105,17 +1128,22 @@ void SyntaxAnalyzer::Splitter() {
         stringstream convert(splitToken[1]);
         currentToken = splitToken[0];
         convert >> currentClass;
-        //cout << "Split Tokens: " << currentToken << " " << currentClass <<endl;
+       // cout << "Split Tokens: " << currentToken << " " << currentClass <<endl;
     } else {
+		//cout << "Split Token Else statement: " << currentToken << " " << "previous class " << currentClass << endl;
         currentToken = splitToken[0];
 
     }
+   // TokenStmt();
     index++;
+	if(currentToken.compare("\n")  == 0){
+		Splitter();
+	}
 }
 
 void SyntaxAnalyzer::FailExit() {
-    cout << exitString << endl;
-    exit(1);
+    //cout << exitString << endl;
+    //exit(1);
 }
 
 void SyntaxAnalyzer::EmptyCheck() {

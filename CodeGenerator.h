@@ -30,11 +30,16 @@ public:
     void ArithimiticFunction(string operandOne, string operandTwo, int operatorID);
     void PrintStmt();
     void WhileReturn();
+    void IfFunction();
+    void ElseFunction();
     void ArgPrint(queue<string> argQue, int numberOfArgs);
     void FactorPrint(queue<string> factorQue, int argCount);
     int currentFunction;
     int lineIndex;
     string currentFunctionID;
+    bool inIfStmt;
+    bool inElseStmt;
+    int ifJumpValue;
 
 private:
 

@@ -146,34 +146,39 @@ void CodeGenerator::Evaluate(queue<string> evalQue) {
                 break;
             case '<':
             case '>':
-                if(operatorQue.top()[0] == '*' || operatorQue.top()[0] == '/' || operatorQue.top()[0] == '+' || operatorQue.top()[0] == '-') {
-                    secondOperand = operandQue.top();
-                    operandQue.pop();
-                    firstOperand = operandQue.top();
-                    operandQue.pop();
-                    char operatorTop = operatorQue.top()[0];
-                    operatorQue.pop();
-
-                    switch (operatorTop) {
-                        case '+':
-                            operatorID = PLUS;
-                            break;
-                        case '-':
-                            operatorID = SUB;
-                            break;
-                        case '*':
-                            operatorID = MULT;
-                            break;
-                        case '/':
-                            operatorID = DIV;
-                            break;
-                    }
-
-                    ArithimiticFunction(firstOperand, secondOperand, operatorID);
+                if(operatorQue.empty()) {
                     operatorQue.push(evalQue.front());
                     evalQue.pop();
+                } else {
+                    if(operatorQue.top()[0] == '*' || operatorQue.top()[0] == '/' || operatorQue.top()[0] == '+' || operatorQue.top()[0] == '-') {
+                        secondOperand = operandQue.top();
+                        operandQue.pop();
+                        firstOperand = operandQue.top();
+                        operandQue.pop();
+                        char operatorTop = operatorQue.top()[0];
+                        operatorQue.pop();
+
+                        switch (operatorTop) {
+                            case '+':
+                                operatorID = PLUS;
+                                break;
+                            case '-':
+                                operatorID = SUB;
+                                break;
+                            case '*':
+                                operatorID = MULT;
+                                break;
+                            case '/':
+                                operatorID = DIV;
+                                break;
+                        }
+
+                        ArithimiticFunction(firstOperand, secondOperand, operatorID);
+                        operatorQue.push(evalQue.front());
+                        evalQue.pop();
 
 
+                    }
                 }
                 break;
 
@@ -294,21 +299,61 @@ void CodeGenerator::ArithimiticFunction(string operandOne, string operandTwo, in
             printQue.push_back(buffer);
             lineIndex++;
             break;
+        case ISEQUAL:
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "COMP", operandOne.c_str(), operandTwo.c_str(), tempID.c_str());
+            printQue.push_back(buffer);
+            operandQue.push(tempID);
+            lineIndex++;
+            tempVarIndex++;
+
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "EQ", operandQue.top().c_str(), " ", "$");
+            operandQue.pop();
+            //printf("%s", buffer);
+            printQue.push_back(buffer);
+            lineIndex++;
+        case NTEQ:
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "COMP", operandOne.c_str(), operandTwo.c_str(), tempID.c_str());
+            printQue.push_back(buffer);
+            operandQue.push(tempID);
+            lineIndex++;
+            tempVarIndex++;
+
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "NTEQ", operandQue.top().c_str(), " ", "$");
+            operandQue.pop();
+            //printf("%s", buffer);
+            printQue.push_back(buffer);
+            lineIndex++;
         case EQUAL:
-            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "assign", operandTwo.c_str(), " ", operandOne.c_str());
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "assign", operandTwo.c_str(), " ",
+                    operandOne.c_str());
             printQue.push_back(buffer);
             lineIndex++;
             break;
 
         case LTEQ:
         case GTEQ:
-            break;
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "COMP", operandOne.c_str(), operandTwo.c_str(), tempID.c_str());
+            printQue.push_back(buffer);
+            operandQue.push(tempID);
+            lineIndex++;
+            tempVarIndex++;
+
+            if (operatorID == GTEQ) {
+                jumpSign = "JGTE";
+            }else {
+                jumpSign = "JLTE";
+            }
+            sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, jumpSign.c_str(), operandQue.top().c_str(), " ", "$");
+            operandQue.pop();
+            //printf("%s", buffer);
+            printQue.push_back(buffer);
+            lineIndex++;
     }
 
 }
 
 void CodeGenerator::PrintStmt() {
-    for (auto it= printQue.begin(); it != printQue.end(); ++it) {
+    for (deque<string>::iterator it= printQue.begin(); it != printQue.end(); ++it) {
         cout << *it;
     }
     while(!printQue.empty()) {
@@ -327,7 +372,7 @@ void CodeGenerator::WhileReturn() {
     printQue.push_back(buffer);
     lineIndex++;
 
-    for (auto it= printQue.begin(); it != printQue.end(); ++it) {
+    for (deque<string>::iterator it= printQue.begin(); it != printQue.end(); ++it) {
         ostringstream testNumber;
         string replacement = *it;
         if(replacement[55] == '$') {
@@ -335,7 +380,7 @@ void CodeGenerator::WhileReturn() {
 
             replacement.replace(54,7, " " + testNumber.str() + "\n");
             printQue.erase(it);
-            printQue.emplace(it+1, replacement);
+            printQue.insert(it+1, replacement);
             break;
         }
     }
@@ -373,7 +418,14 @@ void CodeGenerator::ReturnEval(queue<string> retnQue) {
 
         }
     }
-    Evaluate(evalQue);
+    if (evalQue.size() == 1){
+        operandQue.push(evalQue.front());
+        evalQue.pop();
+    }else{
+        Evaluate(evalQue);
+    }
+
+
     sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "return", " ", " ", operandQue.top().c_str());
     printQue.push_back(buffer);
     operandQue.pop();
@@ -426,5 +478,60 @@ void CodeGenerator::FactorPrint(queue<string> factorQue, int argCount) {
     printQue.push_back(buffer);
     lineIndex++;
     tempVarIndex++;
+
+}
+
+void CodeGenerator::IfFunction() {
+    char buffer[100];
+    ostringstream convert;
+    convert << lineIndex + 1;
+    string jumpRe = convert.str();
+    ifJumpValue = lineIndex + 1;
+
+    sprintf(buffer, "%-9d %-14s %-14s %-14s %-s\n", lineIndex, "J", " ", " ", jumpRe.c_str());
+    printQue.push_back(buffer);
+    lineIndex++;
+
+    for (deque<string>::iterator it= printQue.begin(); it != printQue.end(); ++it) {
+
+        string replacement = *it;
+
+        if(replacement[55] == '$') {
+            replacement.replace(54,7, " " + jumpRe + "\n");
+            printQue.erase(it);
+            printQue.insert(it+1, replacement);
+            break;
+        }
+    }
+}
+
+void CodeGenerator::ElseFunction() {
+
+    ostringstream convert;
+    convert << ifJumpValue;
+    string jumpRe = convert.str();
+    bool passOne = false;
+
+    for (deque<string>::iterator it= printQue.begin(); it != printQue.end(); ++it) {
+
+        string replacement = *it;
+        size_t pos = replacement.find(jumpRe, 55);
+
+        if(pos == 55) {
+            ostringstream testNumber;
+            testNumber << lineIndex;
+
+
+            replacement.replace(54,7, " " + testNumber.str() + "\n");
+            printQue.erase(it);
+            if(passOne) {
+                printQue.insert(it, replacement);
+                break;
+            } else {
+                printQue.insert(it+1, replacement);
+                passOne = true;
+            }
+        }
+    }
 
 }

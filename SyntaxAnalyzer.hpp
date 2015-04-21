@@ -24,10 +24,6 @@ class SyntaxAnalyzer {
     int currentClass;
     string exitString;
 
-
-
-
-
     private:
     void program();
     void declarationList();
