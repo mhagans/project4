@@ -392,8 +392,6 @@ void CodeGenerator::ArithimiticFunction(string operandOne, string operandTwo, in
             operandQue.push(tempID);
             lineIndex++;
             tempVarIndex++;
-
-
             break;
     }
 
